@@ -42,17 +42,6 @@ class LocoPacket:
 
         return f.getvalue()
 
-    def readEncryptedLocoPacket(self, packet, crypto):
-        packetLen = struct.unpack(">I", packet[0:4])[0]
-        iv = packet[4:20]
-        data = packet[20:packetLen-16]
-        dec = crypto.decrypt_aes(data, iv)
-
-        try:
-            self.readLocoPacket(dec)
-        except Exception as e:
-            print(str(e))
-
     def toJsonBody(self):
         return bson.decode(self.body)
 

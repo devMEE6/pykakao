@@ -22,21 +22,34 @@ class LocoAgent:
         
     def _process_packet(self):
         tcp = self.tcpClient
-        buf = b""
+        encryptedPacket = b""
 
         while True:
-            buf += tcp.get_packet()
-            packet = locoPacket.LocoPacket()
-            packet.readEncryptedLocoPacket(buf, self.locoCrypto)
-            buf = buf[struct.unpack(">I", buf[0:4])[0]+4:]
+            encryptedPacket = tcp.get_packet()
+            iv = encryptedPacket[4:20]
+            body = encryptedPacket[20:]
 
-            if packet.packetID in self.packetHandler:
-                self.packetHandler[packet.packetID].set(packet)
-            if self.usesClient and self.onPacket:
-                gevent.spawn(self.onPacket, packet)
-            if self.handler and packet.method in self.handler:
-                gevent.spawn(self.handler[packet.method][1], self.handler[packet.method][0](packet, self))
+            self.__processingBuffer += self.locoCrypto.decrypt_aes(body, iv)
             
+            if not self.__processingHeader and len(self.__processingBuffer) >= 22:
+                self.__processingHeader = self.__processingBuffer[0:22]
+                self.__processingSize = struct.unpack("<i", self.__processingHeader[18:22])[0] + 22
+
+            if self.__processingHeader:
+                if len(self.__processingBuffer) >= self.__processingSize:
+                    packet = locoPacket.LocoPacket()
+                    packet.readLocoPacket(self.__processingBuffer)
+                    
+                    if packet.packetID in self.packetHandler:
+                        self.packetHandler[packet.packetID].set(packet)
+                    if self.usesClient and self.onPacket:
+                        gevent.spawn(self.onPacket, packet)
+                    if self.handler and packet.method in self.handler:
+                        gevent.spawn(self.handler[packet.method][1], self.handler[packet.method][0](packet, self))
+
+                    self.__processingBuffer = self.__processingBuffer[self.__processingSize:]
+                    self.__processingHeader = b""
+
     def _next_packetID(self):
         packetID = self.currentpacketID
         self.currentpacketID += 1

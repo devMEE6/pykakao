@@ -31,10 +31,10 @@ class TcpClient:
 
             if not currentPacketSize and len(encryptedBuffer) >= 4:
                 currentPacketSize = struct.unpack("<I", encryptedBuffer[0:4])[0]
-
+                
             if currentPacketSize:
                 encryptedPacketSize = currentPacketSize+4
-
+                
                 if len(encryptedBuffer) >= encryptedPacketSize:
                     self._recv_buffer.put(encryptedBuffer[0:encryptedPacketSize])
                     encryptedBuffer = encryptedBuffer[encryptedPacketSize:]
