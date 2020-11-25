@@ -10,8 +10,8 @@ class LocoChannelRes:
         self.rawBody = packet.toJsonBody()
         self.chatId = self.rawBody["chatId"]
 
-        if "linkId" in self.rawBody:
-            self.linkId = self.rawBody["linkId"]
+        if "li" in self.rawBody:
+            self.linkId = self.rawBody["li"]
         else:
             self.linkId = 0
 
