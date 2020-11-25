@@ -113,7 +113,7 @@ class LocoChannelRes:
             return self.locoAgent.send_request(req).toJsonBody()
 
     def deleteMessage(self, logId):
-        req = self.locoAgent.locoPacket.LocoRequest("SETMETA", {
+        req = self.locoAgent.locoPacket.LocoRequest("DELETEMSG", {
             "chatId": self.chatId,
             "logId": logId
         })
