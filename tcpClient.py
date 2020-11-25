@@ -23,21 +23,23 @@ class TcpClient:
     def _recv_loop(self):
         encryptedBuffer = b""
         currentPacketSize = 0
-        
+
         while True:
             recv = self._socket.recv(256)
+
             encryptedBuffer += recv
 
             if not currentPacketSize and len(encryptedBuffer) >= 4:
                 currentPacketSize = struct.unpack("<I", encryptedBuffer[0:4])[0]
 
             if currentPacketSize:
-                encryptedPacketSize = currentPacketSize + 4
+                encryptedPacketSize = currentPacketSize+4
 
-                if len(encryptedBuffer) >= encryptedPacketSize:             
+                if len(encryptedBuffer) >= encryptedPacketSize:
                     self._recv_buffer.put(encryptedBuffer[0:encryptedPacketSize])
                     encryptedBuffer = encryptedBuffer[encryptedPacketSize:]
                     currentPacketSize = 0
+
                     
     def _send_loop(self):
         while True:
