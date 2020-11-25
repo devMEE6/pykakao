@@ -3,7 +3,7 @@ import locoAgent
 import locoPacket
 import locoCrypto
 import locoCheckin
-import locoLoginListReq
+import packet.locoLoginList as locoLoginList
 import talk.locoChatRes as locoChatRes
 import talk.locoChannelRes as locoChannelRes
 import gevent
@@ -26,8 +26,9 @@ class LocoClient:
             self.loginRes = loginRes
         else:
             print(loginRes)
+            exit()
         self.locoAgent.connect(self.locoCheckinData["host"], self.locoCheckinData["port"])
-        loginListReq = locoLoginListReq.LocoLoginListReq(self.device_uuid, self.accessKey)
+        loginListReq = locoLoginList.LocoLoginListReq(self.device_uuid, self.accessKey)
         req = locoPacket.LocoRequest(loginListReq.Method(), loginListReq.toJsonBody())
         self.locoAgent.send_request(req)
         gevent.spawn(self.ping)
@@ -46,8 +47,22 @@ class LocoClient:
             chat = locoChatRes.LocoChatRes(packet, channel)
             self.onMessage(chat)
 
+        if packet.method == "DECUNREAD":
+            channel = locoChannelRes.LocoChannelRes(packet, self.locoAgent)
+            reader = channel.getUserInfo(packet.toJsonBody()["userId"])
+            self.onMessageRead(channel, reader)
+
+        if packet.method == "LOGINLIST":
+            self.onReady()
+            
     def onPacket(self, packet):
         pass
 
     def onMessage(self, chat):
+        pass
+
+    def onMessageRead(self, channel, reader):
+        pass
+
+    def onReady(self):
         pass

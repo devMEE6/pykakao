@@ -26,7 +26,10 @@ class TcpClient:
 
         while True:
             recv = self._socket.recv(256)
-
+            if not recv:
+                self.disconnect()
+                exit()
+                
             encryptedBuffer += recv
 
             if not currentPacketSize and len(encryptedBuffer) >= 4:
