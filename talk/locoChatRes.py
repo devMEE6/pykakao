@@ -42,3 +42,9 @@ class LocoChatRes:
 
     def replyTemplate(self, template):
         return self.replyChat(template.getMessage(), template.getExtra(), template.getType())
+
+    def delete(self):
+        return self.channel.deleteMessage(self.logId)
+
+    def hide(self):
+        return self.channel.hideMessage(self.logId, self.type)

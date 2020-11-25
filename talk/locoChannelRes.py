@@ -24,7 +24,7 @@ class LocoChannelRes:
             "msg": str(msg),
             "noSeen": False
         })
-        return self.locoAgent.send_request(req)
+        return self.locoAgent.send_request(req).toJsonBody()
 
     def sendForwardChat(self, msg, extra, t):
         req = self.locoAgent.locoPacket.LocoRequest("FORWARD", {
@@ -35,7 +35,7 @@ class LocoChannelRes:
             "msg": str(msg),
             "noSeen": False
         })
-        return self.locoAgent.send_request(req)
+        return self.locoAgent.send_request(req).toJsonBody()
 
     def sendPhoto(self, data, height, width, userId):
         path, key, url = self.kakaoTalkApi.upload(data, "image/jpeg", userId)
@@ -65,3 +65,56 @@ class LocoChannelRes:
         f.close()
         
         return self.sendPhoto(data, height, width, userId)
+
+    def getUserInfo(self, userId):
+        req = self.locoAgent.locoPacket.LocoRequest("MEMBER", {
+            "chatId": self.chatId,
+            "memberIds": [userId]
+        })
+        return self.locoAgent.send_request(req).toJsonBody()
+
+    def getChatInfo(self):
+        req = self.locoAgent.locoPacket.LocoRequest("CHATINFO", {
+            "chatId": self.chatId
+        })
+        return self.locoAgent.send_request(req).toJsonBody()
+
+    def getLinkInfo(self):
+        req = self.locoAgent.locoPacket.LocoRequest("INFOLINK", {
+            "lis": [self.linkId]
+        })
+        return self.locoAgent.send_request(req).toJsonBody()
+
+    def setMeta(self, t, content):
+        req = self.locoAgent.locoPacket.LocoRequest("SETMETA", {
+            "chatId": self.chatId,
+            "type": t,
+            "content": content
+        })
+        return self.locoAgent.send_request(req).toJsonBody()
+
+    def kickMember(self, userId):
+        if self.li:
+            req = self.locoAgent.locoPacket.LocoRequest("KICKMEM", {
+                "li": self.li,
+                "c": self.chatId,
+                "mid": userId
+            })
+            return self.locoAgent.send_request(req).toJsonBody()
+
+    def hideMessage(self, logId, t):
+        if self.li:
+            req = self.locoAgent.locoPacket.LocoRequest("REWRITE", {
+                "c": self.chatId,
+                "li": self.li,
+                "logId": logId,
+                "t": t
+            })
+            return self.locoAgent.send_request(req).toJsonBody()
+
+    def deleteMessage(self, logId):
+        req = self.locoAgent.locoPacket.LocoRequest("SETMETA", {
+            "chatId": self.chatId,
+            "logId": logId
+        })
+        return self.locoAgent.send_request(req).toJsonBody()
