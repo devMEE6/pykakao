@@ -11,9 +11,9 @@ class LocoChannelRes:
         self.chatId = self.rawBody["chatId"]
 
         if "li" in self.rawBody:
-            self.linkId = self.rawBody["li"]
+            self.li = self.rawBody["li"]
         else:
-            self.linkId = 0
+            self.li = 0
 
     def sendChat(self, msg, extra, t):
         req = self.locoAgent.locoPacket.LocoRequest("WRITE", {
@@ -66,6 +66,29 @@ class LocoChannelRes:
         
         return self.sendPhoto(data, height, width, userId)
 
+    def sendReply(self, logId, message, tt, authorId, msg, t=1):
+        return self.sendChat(msg, json.dumps({
+            "attach_only": False,
+            "attach_type": t,
+            "mentions": [],
+            "src_linkId": self.li,
+            "src_logId": logId,
+            "src_mentions": [],
+            "src_message": message,
+            "src_type": tt,
+            "src_userId": authorId
+        }), 26)
+
+    def sendLongText(self, title, content, userId):
+        path, key, url = self.kakaoTalkApi.upload(content.encode("utf-8"), "image/jpeg", userId)
+        return self.sendForwardChat(title, json.dumps({
+            "path": path,
+            "k": key,
+            "s": len(content),
+            "cs": "",
+            "sd": True
+        }), 1)
+
     def getUserInfo(self, userId):
         req = self.locoAgent.locoPacket.LocoRequest("MEMBER", {
             "chatId": self.chatId,
@@ -81,7 +104,7 @@ class LocoChannelRes:
 
     def getLinkInfo(self):
         req = self.locoAgent.locoPacket.LocoRequest("INFOLINK", {
-            "lis": [self.linkId]
+            "lis": [self.li]
         })
         return self.locoAgent.send_request(req).toJsonBody()
 
@@ -116,5 +139,12 @@ class LocoChannelRes:
         req = self.locoAgent.locoPacket.LocoRequest("DELETEMSG", {
             "chatId": self.chatId,
             "logId": logId
+        })
+        return self.locoAgent.send_request(req).toJsonBody()
+
+    def getChatLogs(self, sincelogId):
+        req = self.locoAgent.locoPacket.LocoRequest("MCHATLOGS", {
+            "chatIds": [self.chatId],
+            "sinces": [sincelogId]
         })
         return self.locoAgent.send_request(req).toJsonBody()

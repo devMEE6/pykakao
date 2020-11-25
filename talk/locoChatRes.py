@@ -43,6 +43,12 @@ class LocoChatRes:
     def replyTemplate(self, template):
         return self.replyChat(template.getMessage(), template.getExtra(), template.getType())
 
+    def replyReply(self, msg, t=1):
+        return self.channel.sendReply(self.logId, self.message, self.type, self.authorId, msg, t)
+
+    def replyLongText(self, title, content):
+        return self.channel.sendLongText(title, content, self.authorId)
+    
     def delete(self):
         return self.channel.deleteMessage(self.logId)
 
