@@ -34,6 +34,20 @@ class KakaoTalkApi:
 
         return r.content.decode()
 
+    def upload(self, data, dataType, userId):
+        r = requests.post("https://up-m.talk.kakao.com/upload", headers={
+            "A": self.authHeader,
+        }, data={
+            "attachment_type": dataType,
+            "user_id": userId,
+        }, files={
+            'attachment': data,
+        })
+        path = r.content.decode()
+        key = path.replace('/talkm', "")
+        url = f"https://dn-m.talk.kakao.com{path}"
+        return path, key, url
+
     def getXVC(self, email, isFull=False):
         xvc = hashlib.sha512(f"HEATH|{self.authUserAgent}|DEMIAN|{email}|{self.device_uuid}".encode("utf-8")).hexdigest()
         if(isFull):

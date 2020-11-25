@@ -4,7 +4,8 @@ import locoPacket
 import locoCrypto
 import locoCheckin
 import locoLoginListReq
-import locoChatRes
+import talk.locoChatRes as locoChatRes
+import talk.locoChannelRes as locoChannelRes
 import gevent
 import json
 
@@ -13,7 +14,7 @@ class LocoClient:
         self.device_name = device_name
         self.device_uuid = device_uuid
         self.kakaoTalkApi = kakaoTalkApi.KakaoTalkApi(device_name, device_uuid)
-        self.locoAgent = locoAgent.LocoAgent(True, self.onPacket, {"MSG": [locoChatRes.LocoChatRes, self.onMessage]})
+        self.locoAgent = locoAgent.LocoAgent(True, self._onPacket)
         self.locoCrypto = locoCrypto.LocoCrypto()
         self.locoCheckinData = locoCheckin.LocoCheckin().getLocoCheckinData()
         
@@ -38,8 +39,15 @@ class LocoClient:
             req = locoPacket.LocoRequest("PING", {})
             self.locoAgent.send_request(req)
             
+    def _onPacket(self, packet):
+        self.onPacket(packet)
+        if packet.method == "MSG":
+            channel = locoChannelRes.LocoChannelRes(packet, self.locoAgent)
+            chat = locoChatRes.LocoChatRes(packet, channel)
+            self.onMessage(chat)
+
     def onPacket(self, packet):
         pass
 
-    def onMessage(self, packet):
+    def onMessage(self, chat):
         pass

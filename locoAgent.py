@@ -1,12 +1,13 @@
 import tcpClient
 import locoCrypto
 import locoPacket
+import kakaoTalkApi
 import struct
 import gevent
 from gevent.event import AsyncResult
 
 class LocoAgent:
-    def __init__(self, usesClient = False, onPacket = None, handler = None):
+    def __init__(self, usesClient = False, onPacket = None):
         self.tcpClient = tcpClient.TcpClient()
         self.locoCrypto = locoCrypto.LocoCrypto()
         self.packet_processor = gevent.spawn(self._process_packet)
@@ -14,8 +15,9 @@ class LocoAgent:
         self.currentpacketID = 0
         self.usesClient = usesClient
         self.onPacket = onPacket
-        self.handler = handler
-
+        self.locoPacket = locoPacket
+        self.kakaoTalkApi = kakaoTalkApi
+        
         self.__processingBuffer = b""
         self.__processingHeader = b""
         self.__processingSize = 0
@@ -44,8 +46,6 @@ class LocoAgent:
                         self.packetHandler[packet.packetID].set(packet)
                     if self.usesClient and self.onPacket:
                         gevent.spawn(self.onPacket, packet)
-                    if self.handler and packet.method in self.handler:
-                        gevent.spawn(self.handler[packet.method][1], self.handler[packet.method][0](packet, self))
 
                     self.__processingBuffer = self.__processingBuffer[self.__processingSize:]
                     self.__processingHeader = b""
